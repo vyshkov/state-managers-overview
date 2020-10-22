@@ -2,6 +2,7 @@
 // in this project we comparing the state management
 import React, { useState } from 'react';
 import Checkbox from 'rc-checkbox';
+import 'rc-checkbox/assets/index.css';
 
 import './components.css'
 

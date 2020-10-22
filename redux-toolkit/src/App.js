@@ -1,67 +1,107 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { v4 as uuid } from 'uuid';
 import { NotesList, Stats, SelectedItemDrawer } from './components';
+import { createSlice, configureStore } from '@reduxjs/toolkit';
+import { Provider, useSelector, useDispatch } from 'react-redux';
 
 import './App.css';
-import 'rc-checkbox/assets/index.css';
 
-function modifyArray(arr, id, fn) {
-    return arr.map(item => (item.id === id ? fn(item) : item));
-}
-
-const data = [
+const initialState = [
     { id: uuid(), text: 'Hello hello', bg: '#dfcec2' },
     { id: uuid(), text: 'Test' },
 ];
 
-function App() {
-    const [items, setItems] = useState(data);
-    const [selected, setSelected] = useState(false);
+const itemsSlice = createSlice({
+    name: 'items',
+    initialState,
+    reducers: {
+        add(state, { payload }) {
+            state.push({ id: uuid(), text: payload });
+        },
+        deleteChecked(state) {
+            return state.filter(i => !i.checked);
+        },
+        toggleItem(state, { payload }) {
+            const item = state.find(i => i.id === payload.id);
+            if (item) {
+                item.checked = !item.checked;
+            }
+        },
+        changeText(state, { payload }) {
+            const item = state.find(i => i.id === payload.id);
+            if (item) {
+                item.text = payload.text;
+            }
+        },
+        changeColor(state, { payload }) {
+            const item = state.find(i => i.id === payload.id);
+            if (item) {
+                item.bg = payload.color;
+            }
+        },
+    },
+});
 
+const editorSlice = createSlice({
+    name: 'selected',
+    initialState: false,
+    reducers: {
+        setSelected(state, { payload }) {
+            return payload;
+        },
+    },
+    extraReducers: {
+      [itemsSlice.actions.changeText]: function(state, { payload }) {
+        if (state && state.id === payload.id) {
+          state.text = payload.text; 
+        }
+      },
+      [itemsSlice.actions.changeColor]: function(state, { payload }) {
+        if (state && state.id === payload.id) {
+          console.log('>>>', payload)
+          state.bg = payload.color; 
+        }
+      }
+    }
+});
+
+const store = configureStore({
+    reducer: { selected: editorSlice.reducer, items: itemsSlice.reducer },
+});
+
+const List = () => {
+    const { items, selected } = useSelector(
+      state => ({
+        items: state.items,
+        selected: state.selected,
+      })
+    );
+    const dispatch = useDispatch();
     return (
         <div className="App">
             <NotesList
                 items={items}
-                onAdd={text =>
-                    setItems(data => data.concat({ text, id: uuid() }))
-                }
-                onDelete={() =>
-                    setItems(items => items.filter(i => !i.checked))
-                }
-                onSelect={item => setSelected(item)}
-                onToggle={item => {
-                    setItems(
-                        modifyArray(items, item.id, i => ({
-                            ...i,
-                            checked: !i.checked,
-                        }))
-                    );
-                }}
+                onAdd={text => dispatch(itemsSlice.actions.add(text))}
+                onDelete={() => dispatch(itemsSlice.actions.deleteChecked())}
+                onSelect={item => dispatch(editorSlice.actions.setSelected(item))}
+                onToggle={item => dispatch(itemsSlice.actions.toggleItem(item))}
             />
             <Stats items={items} />
             <SelectedItemDrawer
                 selected={selected}
-                onTextChange={text => {
-                    setItems(
-                        modifyArray(items, selected.id, val => ({
-                            ...val,
-                            text,
-                        }))
-                    );
-                    setSelected({ ...selected, text });
-                }}
-                onColorChange={color => {
-                    setItems(
-                        modifyArray(items, selected.id, val => ({
-                            ...val,
-                            bg: color,
-                        }))
-                    );
-                    setSelected({ ...selected, bg: color });
-                }}
-                onClose={() => setSelected(false)}
+                onTextChange={text => dispatch(itemsSlice.actions.changeText({ id: selected.id, text }))}
+                onColorChange={color => dispatch(itemsSlice.actions.changeColor({ id: selected.id, color }))}
+                onClose={() => dispatch(editorSlice.actions.setSelected(false))}
             />
         </div>
+    );
+};
+
+function App() {
+    return (
+        <Provider store={store}>
+            <List />
+        </Provider>
     );
 }
 

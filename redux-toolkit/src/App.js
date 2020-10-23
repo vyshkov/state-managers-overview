@@ -51,18 +51,17 @@ const editorSlice = createSlice({
         },
     },
     extraReducers: {
-      [itemsSlice.actions.changeText]: function(state, { payload }) {
-        if (state && state.id === payload.id) {
-          state.text = payload.text; 
-        }
-      },
-      [itemsSlice.actions.changeColor]: function(state, { payload }) {
-        if (state && state.id === payload.id) {
-          console.log('>>>', payload)
-          state.bg = payload.color; 
-        }
-      }
-    }
+        [itemsSlice.actions.changeText]: function (state, { payload }) {
+            if (state && state.id === payload.id) {
+                state.text = payload.text;
+            }
+        },
+        [itemsSlice.actions.changeColor]: function (state, { payload }) {
+            if (state && state.id === payload.id) {
+                state.bg = payload.color;
+            }
+        },
+    },
 });
 
 const store = configureStore({
@@ -70,12 +69,10 @@ const store = configureStore({
 });
 
 const List = () => {
-    const { items, selected } = useSelector(
-      state => ({
+    const { items, selected } = useSelector(state => ({
         items: state.items,
         selected: state.selected,
-      })
-    );
+    }));
     const dispatch = useDispatch();
     return (
         <div className="App">
@@ -83,14 +80,27 @@ const List = () => {
                 items={items}
                 onAdd={text => dispatch(itemsSlice.actions.add(text))}
                 onDelete={() => dispatch(itemsSlice.actions.deleteChecked())}
-                onSelect={item => dispatch(editorSlice.actions.setSelected(item))}
+                onSelect={item =>
+                    dispatch(editorSlice.actions.setSelected(item))
+                }
                 onToggle={item => dispatch(itemsSlice.actions.toggleItem(item))}
             />
             <Stats items={items} />
             <SelectedItemDrawer
                 selected={selected}
-                onTextChange={text => dispatch(itemsSlice.actions.changeText({ id: selected.id, text }))}
-                onColorChange={color => dispatch(itemsSlice.actions.changeColor({ id: selected.id, color }))}
+                onTextChange={text =>
+                    dispatch(
+                        itemsSlice.actions.changeText({ id: selected.id, text })
+                    )
+                }
+                onColorChange={color =>
+                    dispatch(
+                        itemsSlice.actions.changeColor({
+                            id: selected.id,
+                            color,
+                        })
+                    )
+                }
                 onClose={() => dispatch(editorSlice.actions.setSelected(false))}
             />
         </div>

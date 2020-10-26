@@ -21,24 +21,14 @@ function App({ model }) {
         <F.div className="App">
             <NotesList
                 model={model}
-                onAdd={text =>
-                    model.add(text)
-                }
-                onDelete={() =>
-                    model.deleteChecked()
-                }
+                onAdd={text => model.add(text)}
+                onDelete={() => model.deleteChecked()}
                 onSelect={item => model.setSelected(item)}
             />
             <Stats model={model} />
             <SelectedItemDrawer
                 selected={model.selected}
                 itemsModel={model.items}
-                onTextChange={text => {
-
-                }}
-                onColorChange={color => {
-
-                }}
                 onClose={() => model.setSelected(false)}
             />
         </F.div>
